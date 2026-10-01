@@ -5,7 +5,21 @@ import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 os.system('color')
-KRYPTEX_EXE_PATH = r"C:\Program Files\Kryptex\Kryptex.exe"
+
+def find_kryptex():
+    paths = [
+        os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "kryptex", "Kryptex.exe"),
+        os.path.join(os.environ.get("LOCALAPPDATA", ""), "kryptex", "Kryptex.exe"),
+        r"C:\Program Files\Kryptex\Kryptex.exe",
+        r"C:\Program Files (x86)\Kryptex\Kryptex.exe"
+    ]
+    for p in paths:
+        if os.path.exists(p):
+            return p
+    # Fallback caso ele mude o diretório (pode ser editado pelo usuário)
+    return r"C:\Program Files\Kryptex\Kryptex.exe"
+
+KRYPTEX_EXE_PATH = find_kryptex()
 
 # Variável de controle (Cooldown)
 ultimo_restart = 0

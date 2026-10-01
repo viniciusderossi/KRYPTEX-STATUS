@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Monitor Kryptex",
+  "version": "2.0",
+  "description": "Verifica se o PC configurado esta online no painel e reinicia o Kryptex pelo servidor local se cair.",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Configurar Monitor Kryptex"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.kryptex.com/*hardware*"],
+      "js": ["content.js"]
+    }
+  ]
+}

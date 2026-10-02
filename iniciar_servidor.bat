@@ -12,6 +12,10 @@ if %errorLevel% == 0 (
 :run
 cd /d "%~dp0"
 
+:: Mata sessoes anteriores presas na mesma porta
+echo Limpando sessoes antigas do Servidor...
+powershell -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'servidor_local.py' -and $_.ProcessId -ne $PID } | Invoke-CimMethod -MethodName Terminate" >nul 2>&1
+
 :: Verifica se o Python esta instalado
 python --version >nul 2>&1
 if %errorLevel% neq 0 (

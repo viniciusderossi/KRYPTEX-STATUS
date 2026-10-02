@@ -1,4 +1,4 @@
-﻿chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "GET_MACHINES") {
         let possibleNames = new Set();
         
@@ -17,7 +17,7 @@
                         if (!lower.includes("saldo") && !lower.includes("pesquisar") && !lower.includes("total")) {
                             let lines = txt.split('\n').map(l => l.trim()).filter(l => l.length >= 3);
                             for (let line of lines) {
-                                let isNumbersOrSymbols = /^[\d\s\-\.\,R\$°cWMHskhx/·]+$/i.test(line);
+                                let isNumbersOrSymbols = /^[\d\s\-\.\,R\$°cWMHskhx/]+$/i.test(line);
                                 let isStopword = ['online', 'offline', 'computadores', 'rentabilidade', 'leituras', 'dispositivos', 'mês', 'mes', 'dia', 'hora', 'cpu', 'gpu', 'tudo', 'pool', 'pesquisar', 'mostrar', 'hardware', 'trabalhadores', 'hashrate', 'minerador', 'nenhum'].includes(line.toLowerCase().split(' ')[0]);
                                 
                                 if (!isNumbersOrSymbols && !isStopword && line.length >= 3 && line.length <= 25) {
@@ -41,38 +41,53 @@ function verificarStatus() {
     chrome.storage.sync.get(['pcName'], (result) => {
         const PC_NAME = result.pcName || "PCVinicius";
         
-        let linhas = document.querySelectorAll('.row, tr, [class*="flex"], [class*="grid"], [class*="card"]');
         let achouProblema = false;
         let achouPC = false;
-
-        linhas.forEach(linha => {
-            let textoLinha = linha.innerText || "";
-            if (textoLinha.toLowerCase().includes(PC_NAME.toLowerCase())) {
+        
+        let allElements = document.querySelectorAll('*');
+        let containersPC = [];
+        let pcRegex = new RegExp("\\b" + PC_NAME + "\\b", "i");
+        
+        allElements.forEach(el => {
+            let txt = el.innerText || "";
+            if (pcRegex.test(txt) && txt.length > 5 && txt.length < 300) {
+                containersPC.push(txt);
                 achouPC = true;
-                let htmlLinha = linha.innerHTML.toLowerCase();
-                
-                // Verifica erro
-                if (htmlLinha.includes("warning") || htmlLinha.includes("error") || htmlLinha.includes("danger") || htmlLinha.includes("text-red") || htmlLinha.includes("bg-red") || htmlLinha.includes("fill-red") || htmlLinha.includes("offline") || htmlLinha.includes("inativo")) {
-                    
-                    if (textoLinha.includes('R$ 0,00') || textoLinha.includes('$0.00') || !textoLinha.toLowerCase().includes('r$')) {
-                        achouProblema = true;
-                    }
-                }
             }
         });
 
-        
+        if (achouPC) {
+            let temDinheiro = false;
+            let isCalculating = false;
+            
+            containersPC.forEach(txt => {
+                let lower = txt.toLowerCase();
+                if (lower.includes("calculando") || lower.includes("calculating")) {
+                    isCalculating = true;
+                }
+                if (txt.includes("R$") || txt.includes("$")) {
+                    if (!txt.includes("R$ 0,00") && !txt.includes("$0.00") && !txt.includes("$ 0.00")) {
+                        temDinheiro = true;
+                    }
+                }
+            });
+            
+            if (!temDinheiro && !isCalculating) {
+                achouProblema = true;
+            }
+        }
+
         if (!achouPC) {
-                        console.log(`[KRYPTEX MONITOR] PC ${PC_NAME} nao encontrado na tela.`);
+            console.log(`[KRYPTEX MONITOR] PC '${PC_NAME}' não encontrado na tela.`);
             chrome.runtime.sendMessage({ action: "SEND_STATUS", status: "notfound" });
             return;
         }
 
         if (achouProblema) {
-                        console.log(`[KRYPTEX MONITOR] STATUS: OFFLINE! Avisando o servidor local...`);
+            console.log(`[KRYPTEX MONITOR] STATUS: OFFLINE! Avisando o servidor local...`);
             chrome.runtime.sendMessage({ action: "SEND_STATUS", status: "restart" });
         } else {
-                        console.log(`[KRYPTEX MONITOR] STATUS: ONLINE e minerando (${PC_NAME}).`);
+            console.log(`[KRYPTEX MONITOR] STATUS: ONLINE e minerando (${PC_NAME}).`);
             chrome.runtime.sendMessage({ action: "SEND_STATUS", status: "online" });
         }
     });
@@ -81,9 +96,9 @@ function verificarStatus() {
 function ativarAutoReload() {
     const meta = document.createElement('meta');
     meta.httpEquiv = "refresh";
-    meta.content = "300";
+    meta.content = "120";
     document.getElementsByTagName('head')[0].appendChild(meta);
-    console.log("[KRYPTEX MONITOR] Auto-Reload a cada 5 minutos ativado!");
+    console.log("[KRYPTEX MONITOR] Auto-Reload a cada 2 minutos ativado!");
 }
 
 setTimeout(() => {

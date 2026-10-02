@@ -1,4 +1,4 @@
-﻿import time
+import time
 import subprocess
 import os
 import sys
@@ -38,10 +38,10 @@ class RequestHandler(BaseHTTPRequestHandler):
             agora = time.time()
             if (agora - ultimo_restart) < TEMPO_DE_ESPERA:
                 tempo_restante = int(TEMPO_DE_ESPERA - (agora - ultimo_restart))
-                print(f"[{time.strftime('%H:%M:%S')}] ALERTA IGNORADO: O Kryptex foi reiniciado ha pouco tempo. Dando tempo para ele iniciar... ({tempo_restante}s restantes)", flush=True)
+                print(f"[{time.strftime('%H:%M:%S')}] \033[93mALERTA IGNORADO: O Kryptex foi reiniciado ha pouco tempo. Dando tempo para ele iniciar... ({tempo_restante}s restantes)\033[0m", flush=True)
                 return
 
-            print(f"\n[{time.strftime('%H:%M:%S')}] STATUS ATUAL: OFFLINE! Triangulo de erro detectado.", flush=True)
+            print(f"\n[{time.strftime('%H:%M:%S')}] \033[91mSTATUS ATUAL: OFFLINE! Triangulo de erro detectado.\033[0m", flush=True)
             print(f"[{time.strftime('%H:%M:%S')}] Fechando TODO O ECOSSISTEMA Kryptex silenciosamente...", flush=True)
             
             ultimo_restart = agora
@@ -58,19 +58,35 @@ class RequestHandler(BaseHTTPRequestHandler):
             time.sleep(5)
             
             if os.path.exists(KRYPTEX_EXE_PATH):
-                # BLINDAGEM TOTAL contra as mensagens feias de log do Kryptex:
-                # Agora redirecionamos o lixo (stderr e stdout) para o "buraco negro" (DEVNULL)
-                os.startfile(KRYPTEX_EXE_PATH)
-                print(f"[{time.strftime('%H:%M:%S')}] Kryptex reaberto com sucesso!\n", flush=True)
+                DETACHED_PROCESS = 0x00000008
+                CREATE_NEW_PROCESS_GROUP = 0x00000200
+                subprocess.Popen(
+                    [KRYPTEX_EXE_PATH],
+                    creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    stdin=subprocess.DEVNULL
+                )
+                print(f"[{time.strftime('%H:%M:%S')}] \033[92mKryptex reaberto com sucesso!\033[0m\n", flush=True)
             else:
-                print(f"[{time.strftime('%H:%M:%S')}] ERRO: Nao achou o Kryptex no caminho {KRYPTEX_EXE_PATH}\n", flush=True)
+                print(f"[{time.strftime('%H:%M:%S')}] \033[91mERRO: Nao achou o Kryptex no caminho {KRYPTEX_EXE_PATH}\033[0m\n", flush=True)
 
         elif self.path == '/online':
-            print(f"[{time.strftime('%H:%M:%S')}] STATUS ATUAL: ONLINE. Tudo funcionando perfeitamente.", flush=True)
+            print(f"[{time.strftime('%H:%M:%S')}] \033[92m[✓] Vigiando: PC ONLINE e minerando corretamente...\033[0m   ", end='\r', flush=True)
 
         elif self.path == '/notfound':
-            print(f"[{time.strftime('%H:%M:%S')}] AVISO: A Extensao nao encontrou sua Maquina na tela do Kryptex! Verifique o nome.", flush=True)
+            print(f"[{time.strftime('%H:%M:%S')}] \033[93mSite do Kryptex Offline ou Fora do Ar. Aguardando recarregar a pagina em 2 min...\033[0m", flush=True)
 
+    
+    def do_POST(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        if self.path == '/debug':
+            content_len = int(self.headers.get('Content-Length', 0))
+            post_body = self.rfile.read(content_len).decode('utf-8')
+            with open('debug_html.txt', 'w', encoding='utf-8') as dbg: dbg.write(post_body)
+            pass
     def log_message(self, format, *args):
         pass
 
@@ -80,6 +96,7 @@ def run_server():
     print("===============================================================")
     print("       MOTOR LOCAL DO KRYPTEX (RODANDO NA PORTA 15000)       ")
     print("===============================================================\n")
+    print(f"[{time.strftime('%H:%M:%S')}] \033[92mServidor ATIVO e vigiando a extensao! (Modo Silencioso)\n\033[0m", flush=True)
     httpd.serve_forever()
 
 if __name__ == '__main__':

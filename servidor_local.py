@@ -38,7 +38,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             agora = time.time()
             if (agora - ultimo_restart) < TEMPO_DE_ESPERA:
                 tempo_restante = int(TEMPO_DE_ESPERA - (agora - ultimo_restart))
-                print(f"[{time.strftime('%H:%M:%S')}] \033[93mALERTA IGNORADO: O Kryptex foi reiniciado ha pouco tempo. Dando tempo para ele iniciar... ({tempo_restante}s restantes)\033[0m", flush=True)
+                # Usa \r para nao poluir a tela com inumeros avisos enquanto espera os 10 minutos
+                print(f"[{time.strftime('%H:%M:%S')}] \033[93mALERTA IGNORADO: Aguardando o Kryptex (re)iniciar nos bastidores... ({tempo_restante}s restantes)\033[0m   ", end='\r', flush=True)
                 return
 
             print(f"\n[{time.strftime('%H:%M:%S')}] \033[91mSTATUS ATUAL: OFFLINE! Triangulo de erro detectado.\033[0m", flush=True)

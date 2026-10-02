@@ -26,8 +26,8 @@ if %errorLevel% neq 0 (
     curl -o python_installer.exe https://www.python.org/ftp/python/3.11.8/python-3.11.8-amd64.exe
     
     echo.
-    echo Instalando o Python no seu sistema (isso pode demorar cerca de 1 a 2 minutos)...
-    :: Instala de forma totalmente invisivel, marcando a opcao crucial de adicionar ao "Path" do Windows
+    echo Instalando o Python no seu sistema. Isso pode demorar cerca de 1 a 2 minutos...
+    REM Instala de forma totalmente invisivel, marcando a opcao crucial de adicionar ao "Path" do Windows
     python_installer.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0
     
     echo Instalacao concluida! Limpando os arquivos...

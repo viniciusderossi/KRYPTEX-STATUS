@@ -1,6 +1,6 @@
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+﻿chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "SEND_STATUS") {
-        fetch(`http://127.0.0.1:15000/${request.status}`)
+        fetch(`http://127.0.0.1:15000/${request.status}`, { mode: "no-cors", cache: "no-store" })
             .then(res => console.log('Servidor respondeu com sucesso'))
             .catch(err => console.log('Erro no background:', err));
     }
